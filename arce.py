@@ -38,7 +38,7 @@ class ApproximateCoprimeFactorization(nn.Module):
         factors = []
         digits_needed = math.ceil(math.log(num_embeddings, radix))
         current_factor = radix
-        for i in range(digits_needed):
+        for _ in range(digits_needed):
             factors.append(current_factor)
             current_factor *= radix
         self.divisors = torch.tensor(factors)
@@ -46,7 +46,7 @@ class ApproximateCoprimeFactorization(nn.Module):
     def rotary_only_factorization(self, num_embeddings):
         self.divisors = torch.tensor([num_embeddings])
 
-    def __init__(self, num_embeddings = None, factor_mode = 'radix', approximation = 1.0): #factor_mode must be specified here due to legacy issues with torchfm
+    def __init__(self, num_embeddings = None, factor_mode = 'radix', approximation = 1.0, **kwargs): 
         super(ApproximateCoprimeFactorization, self).__init__()
         self.approximation = approximation
         self.num_embeddings = num_embeddings
@@ -57,7 +57,7 @@ class ApproximateCoprimeFactorization(nn.Module):
         elif self.factor_mode == 'quotient_remainder':
             self.quotient_remainder_factorization(num_embeddings)
         elif self.factor_mode == 'radix':
-            self.radix_factorization(num_embeddings)
+            self.radix_factorization(num_embeddings, radix=kwargs.get('radix', 10))
         elif self.factor_mode == 'rotary_only':
             self.rotary_only_factorization(num_embeddings)
         else:
