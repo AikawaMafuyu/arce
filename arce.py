@@ -3,8 +3,16 @@ import torch
 import torch.nn as nn
 
 class ApproximateCoprimeFactorization(nn.Module):
-    @classmethod
-    def sieve_eratosthenes(cls, n):
+    @staticmethod
+    def sieve_eratosthenes(n: int) -> list:
+        """Fast generation of prime numbers using sieve of Eratosthenes.
+
+        Args:
+            n (int): the upper bound of the prime numbers to be generated.
+
+        Returns:
+            list: the list of prime numbers less than or equal to n.
+        """        
         is_prime = [True] * (n + 1)
         is_prime[0] = is_prime[1] = False
         
@@ -15,26 +23,63 @@ class ApproximateCoprimeFactorization(nn.Module):
         primes = [p for p in range(2, n + 1) if is_prime[p]]
         return primes
 
-    @classmethod
-    def get_prime_factors(cls, primes, n):
+    @staticmethod
+    def get_prime_factors(primes: list, n: int) -> list:
+        """Get the prime factors of n.
+
+        Args:
+            primes (list): the list of prime numbers less than or equal to n.
+            n (int): the number to be factorized.
+        Returns:
+            list: the list of prime factors of n.
+        """        
         product = 1
         for prime_idx, prime in enumerate(primes):
             product *= prime
             if product > n:
                 return primes[:prime_idx+1]
     
-    def approximate_index(self, x, approximation = 1.0):
+    def approximate_index(self: 'ApproximateCoprimeFactorization', x: torch.Tensor, approximation: float = 1.0) -> torch.Tensor:
+        """Tunable approximation of the index.
+
+        Args:
+            self (ApproximateCoprimeFactorization): the instance of the class.
+            x (torch.Tensor): the input tensor of indices.
+            approximation (float, optional): the approximation factor. Defaults to 1.0.
+
+        Returns:
+            torch.Tensor: the approximated indices.
+        """        
         return torch.round(x * approximation).int()
     
-    def coprime_factorization(self, num_embeddings):
+    def coprime_factorization(self: 'ApproximateCoprimeFactorization', num_embeddings: int) -> None:
+        """Intialize factors for the coprime factorization.
+
+        Args:
+            self (ApproximateCoprimeFactorization): the instance of the class.
+            num_embeddings (int): the number of embeddings.
+        """        
         self.divisors = torch.tensor(self.get_prime_factors(self.sieve_eratosthenes(num_embeddings), num_embeddings))
     
-    def quotient_remainder_factorization(self, num_embeddings):
+    def quotient_remainder_factorization(self: 'ApproximateCoprimeFactorization', num_embeddings: int) -> None:
+        """Intialize factors for the quotient-remainder factorization.
+
+        Args:
+            self (ApproximateCoprimeFactorization): the instance of the class.
+            num_embeddings (int): the number of embeddings.
+        """        
         quotient = math.ceil(math.sqrt(num_embeddings))
         remainder = num_embeddings % quotient
         self.divisors = torch.tensor([quotient, remainder])
         
-    def radix_factorization(self, num_embeddings, radix = 10):
+    def radix_factorization(self: 'ApproximateCoprimeFactorization', num_embeddings: int, radix: int = 10) -> None:
+        """Intialize factors for the radix factorization.
+
+        Args:
+            self (ApproximateCoprimeFactorization): the instance of the class.
+            num_embeddings (int): the number of embeddings.
+            radix (int, optional): the radix. Defaults to 10.
+        """
         factors = []
         digits_needed = math.ceil(math.log(num_embeddings, radix))
         current_factor = radix
@@ -43,10 +88,27 @@ class ApproximateCoprimeFactorization(nn.Module):
             current_factor *= radix
         self.divisors = torch.tensor(factors)
 
-    def rotary_only_factorization(self, num_embeddings):
+    def rotary_only_factorization(self: 'ApproximateCoprimeFactorization', num_embeddings: int) -> None:
+        """Intialize factors for the rotary-only factorization.
+
+        Args:
+            self (ApproximateCoprimeFactorization): the instance of the class.
+            num_embeddings (int): the number of embeddings.
+        """
         self.divisors = torch.tensor([num_embeddings])
 
-    def __init__(self, num_embeddings = None, factor_mode = 'radix', approximation = 1.0, **kwargs): 
+    def __init__(self: 'ApproximateCoprimeFactorization', num_embeddings: int, factor_mode: str = 'rotary_only', approximation: float = 1.0, **kwargs) -> None:
+        """Initialize the class.
+
+        Args:
+            self (ApproximateCoprimeFactorization): the instance of the class.
+            num_embeddings (int): the number of embeddings.
+            factor_mode (str, optional): the factorization mode. Defaults to 'rotary_only'.
+            approximation (float, optional): the approximation factor. Defaults to 1.0.
+
+        Raises:
+            ValueError: if the factor_mode is not supported. Available options are 'coprimes', 'quotient_remainder', 'radix', and 'rotary_only'.
+        """        
         super(ApproximateCoprimeFactorization, self).__init__()
         self.approximation = approximation
         self.num_embeddings = num_embeddings
@@ -63,7 +125,16 @@ class ApproximateCoprimeFactorization(nn.Module):
         else:
             raise ValueError('Unknown factor_mode!')
             
-    def forward_wrapper(self, x):
+    def forward_wrapper(self: 'ApproximateCoprimeFactorization', x: torch.Tensor) -> torch.Tensor:
+        """Forward wrapper for the factorization.
+
+        Args:
+            self (ApproximateCoprimeFactorization): the instance of the class.
+            x (torch.Tensor): the input tensor of indices.
+
+        Returns:
+            torch.Tensor: the factorized indices.
+        """
         if self.factor_mode == 'coprimes':
             x = x.unsqueeze(-1) % self.divisors.to(x.device) #(B, I') % (D)
         elif self.factor_mode == 'quotient_remainder':
@@ -82,17 +153,46 @@ class ApproximateCoprimeFactorization(nn.Module):
             x = x.unsqueeze(-1)
         return x #(B, I', D)
     
-    def apprximation_wrapper(self, x):
+    def approximation_wrapper(self: 'ApproximateCoprimeFactorization', x: torch.Tensor) -> torch.Tensor:
+        """Approximation wrapper for the factorization.
+
+        Args:
+            self (ApproximateCoprimeFactorization): the instance of the class.
+            x (torch.Tensor): the input tensor of indices.
+
+        Returns:
+            torch.Tensor: the approximated indices.
+        """
         return self.approximate_index(x, self.approximation)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward function.
+
+        Args:
+            self (ApproximateCoprimeFactorization): the instance of the class.
+            x (torch.Tensor): the input tensor of indices.
+
+        Returns:
+            torch.Tensor: the approximated and factorized indices.
+        """
         x = self.apprximation_wrapper(x)
         x = self.forward_wrapper(x)
         return x
 
 class ApproxRotaryCompEmbed(nn.Module):
+    def __init__(self: 'ApproxRotaryCompEmbed', num_embeddings: int, embedding_dim: int, approximation: float = 1.0) -> None:
+        """Initialize the class.
 
-    def __init__(self, num_embeddings, embedding_dim, approximation = 0):
+        Args:
+            self (ApproxRotaryCompEmbed): the instance of the class.
+            num_embeddings (int): the number of embeddings.
+            embedding_dim (int): the dimension of the embeddings.
+            approximation (float, optional): the approximation factor. Defaults to 1.0.
+
+        Raises:
+            ValueError: if the vec_dim is non-positive.
+            ValueError: if the num_embeddings is non-positive.
+        """        
         super(ApproxRotaryCompEmbed, self).__init__()
         self.approximation = approximation
         self.embedding_appended = False
@@ -111,7 +211,16 @@ class ApproxRotaryCompEmbed(nn.Module):
         self.factorizer = ApproximateCoprimeFactorization(num_embeddings = self.num_embeddings)
         self.weight = nn.Parameter(torch.randn(1, 1, len(self.factorizer.divisors), 2, self.embedding_dim  // 2))
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward function.
+
+        Args:
+            self (ApproxRotaryCompEmbed): the instance of the class.
+            x (torch.Tensor): the input tensor of indices.
+
+        Returns:
+            torch.Tensor: the embeddings.
+        """
         x = self.factorizer(x) # (B, I', D)
         x = x / self.factorizer.divisors.to(x.device) # (B, I', rho) / (D) = (B, I', rho) (rho = D)
         x = x * 2 * math.pi # (B, I', theta) (theta = rho)
