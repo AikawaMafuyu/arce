@@ -1,8 +1,10 @@
 import math
 import torch
 import torch.nn as nn
+from functools import reduce
 
 class ApproximateCoprimeFactorization(nn.Module):
+    
     @staticmethod
     def sieve_eratosthenes(n: int) -> list:
         """Fast generation of prime numbers using sieve of Eratosthenes.
@@ -12,16 +14,24 @@ class ApproximateCoprimeFactorization(nn.Module):
 
         Returns:
             list: the list of prime numbers less than or equal to n.
-        """        
-        is_prime = [True] * (n + 1)
-        is_prime[0] = is_prime[1] = False
-        
-        for p in range(2, int(n**0.5) + 1):
-            if is_prime[p]:
-                for i in range(p * p, n + 1, p):
-                    is_prime[i] = False
-        primes = [p for p in range(2, n + 1) if is_prime[p]]
-        return primes
+        """
+        precomputed_primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31]
+        precomputed_products = [reduce(lambda x, y: x*y, precomputed_primes[:i]) for i in range(1, len(precomputed_primes)+1)]
+        if n < precomputed_products[-1]:
+            return precomputed_primes
+        else:
+            primes = precomputed_primes
+            for i in range(precomputed_primes[-1]+1, n):
+                is_prime = True
+                for prime in primes:
+                    if i % prime == 0:
+                        is_prime = False
+                        break
+                if is_prime:
+                    primes.append(i)
+                    precomputed_products.append(precomputed_products[-1] * i)
+                    if precomputed_products[-1] > n:
+                        return primes
 
     @staticmethod
     def get_prime_factors(primes: list, n: int) -> list:
