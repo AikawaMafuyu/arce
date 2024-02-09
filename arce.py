@@ -7,7 +7,7 @@ class ApproximateCoprimeFactorization(nn.Module):
     
     @staticmethod
     def sieve_eratosthenes(n: int) -> list:
-        """Fast generation of prime numbers using sieve of Eratosthenes.
+        """Fast generation of prime numbers using sieve of Eratosthenes. Some precomputed prime numbers are used to speed up the process.
 
         Args:
             n (int): the upper bound of the prime numbers to be generated.
@@ -50,12 +50,12 @@ class ApproximateCoprimeFactorization(nn.Module):
                 return primes[:prime_idx+1]
     
     def approximate_index(self: 'ApproximateCoprimeFactorization', x: torch.Tensor, dilation: int = 1) -> torch.Tensor:
-        """Tunable approximation of the index.
+        """Approximation of the index.
 
         Args:
             self (ApproximateCoprimeFactorization): the instance of the class.
             x (torch.Tensor): the input tensor of indices.
-            dilation (int, optional): the dilation factor. Defaults to 1.
+            dilation (int, optional): the dilation factor which is the reciprocal of the approximation factor. Defaults to 1.
 
         Returns:
             torch.Tensor: the approximated indices.
