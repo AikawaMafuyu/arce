@@ -29,10 +29,10 @@ For detailed implementation, check `./arce.py`.
 ## Contact
 If you have any questions, feel free to contact:
 ```
-Anonymous
+Dongning Ma, Ph.D. candidate, Villanova University, dma2@villanova.edu 
 ```
 
 If you find ARCE useful in your research or project, please consider citing out paper:
 ```
-In-submission
+Dongning Ma, Xun Jiao, “Memory-Efficient Deep Recommender Systems using Approximate Rotary Compositional Embedding”, The 47th International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR), Washington D.C., 2024. (just accepted)
 ```
