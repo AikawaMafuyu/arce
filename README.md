@@ -34,5 +34,13 @@ Dongning Ma, Ph.D. candidate, Villanova University, dma2@villanova.edu
 
 If you find ARCE useful in your research or project, please consider citing out paper:
 ```
-Dongning Ma, Xun Jiao, “Memory-Efficient Deep Recommender Systems using Approximate Rotary Compositional Embedding”, The 47th International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR), Washington D.C., 2024. (just accepted)
+@inproceedings{ma2024memory,
+author = {Ma, Dongning and Jiao, Xun},
+title = {Memory-Efficient Deep Recommender Systems using Approximate Rotary Compositional Embedding},
+year = {2024},
+url = {https://doi.org/10.1145/3626772.3657953},
+doi = {10.1145/3626772.3657953},
+booktitle = {Proceedings of the 47th International ACM SIGIR Conference on Research and Development in Information Retrieval},
+pages = {2507–2511},
+}
 ```
